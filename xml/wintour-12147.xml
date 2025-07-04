@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<bilhetes>
+  <nr_arquivo>12147</nr_arquivo>
+  <data_geracao>04/07/2025</data_geracao>
+  <hora_geracao>18:24</hora_geracao>
+  <nome_agencia>uniglobe pro</nome_agencia>
+  <versao_xml>4</versao_xml>
+  <bilhete>
+    <idv_externo>24463105</idv_externo>
+    <data_lancamento>08/05/2025</data_lancamento>
+    <codigo_produto>tkt</codigo_produto>
+    <fornecedor>512</fornecedor>
+    <num_bilhete>2872572763</num_bilhete>
+    <prestador_svc>la</prestador_svc>
+    <forma_de_pagamento>cc</forma_de_pagamento>
+    <moeda>brl</moeda>
+    <emissor>tms</emissor>
+    <cliente>clidec - clinica dentaria especializada cura d ars</cliente>
+    <ccustos_cliente/>
+    <aprovador>tanie lira</aprovador>
+    <numero_requisicao>12147</numero_requisicao>
+    <localizador>ulffrb</localizador>
+    <passageiro>ana paula tchakerian</passageiro>
+    <tipo_domest_inter>d</tipo_domest_inter>
+    <tipo_roteiro>1</tipo_roteiro>
+    <valores>
+      <item>
+        <codigo>tarifa</codigo>
+        <valor>931.93</valor>
+      </item>
+      <item>
+        <codigo>taxa</codigo>
+        <valor>92.31</valor>
+      </item>
+      <item>
+        <codigo>taxa_du</codigo>
+        <valor>0.00</valor>
+      </item>
+    </valores>
+    <roteiro>
+      <aereo>
+        <trecho>
+          <cia_iata>la</cia_iata>
+          <numero_voo>-</numero_voo>
+          <aeroporto_origem>cgh</aeroporto_origem>
+          <aeroporto_destino>cnf</aeroporto_destino>
+          <data_partida>22/05/2025</data_partida>
+          <hora_partida>08:00</hora_partida>
+          <data_chegada>22/05/2025</data_chegada>
+          <hora_chegada>10:00</hora_chegada>
+          <classe>q/q</classe>
+        </trecho>
+        <trecho>
+          <cia_iata>la</cia_iata>
+          <numero_voo>-</numero_voo>
+          <aeroporto_origem>cnf</aeroporto_origem>
+          <aeroporto_destino>cgh</aeroporto_destino>
+          <data_partida>22/05/2025</data_partida>
+          <hora_partida>19:00</hora_partida>
+          <data_chegada>22/05/2025</data_chegada>
+          <hora_chegada>21:00</hora_chegada>
+          <classe>q/q</classe>
+        </trecho>
+      </aereo>
+    </roteiro>
+  </bilhete>
+</bilhetes>
