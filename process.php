@@ -67,6 +67,7 @@ while (($row = fgetcsv($handle, 0, ",")) !== false) {
     $requisicao = strtolower($registro['RequisiçãoBenner']);
     $localizador = strtolower($registro['AéreoLocalizador']);
     $passageiro = strtolower($registro['PassageiroNomeCompleto']);
+    $centroDescritivo = strtolower($registro['CentroDescritivo']);
     $tarifa = limparValorDecimal($registro['TarifaEmitida']);
     $taxas = limparValorDecimal($registro['Taxas']);
     $taxa_du = limparValorDecimal($registro['DescontoAéreo']);
@@ -94,14 +95,14 @@ while (($row = fgetcsv($handle, 0, ",")) !== false) {
     $stmt = $pdo->prepare("INSERT INTO bilhetes_aereos (
         handle, data_emissao, bilhete, cia_aerea, forma_pagamento, emissor,
         informacao_cliente, aprovador_efetivo, requisicao_benner, localizador,
-        passageiro_nome_completo, tarifa_emitida, taxas, desconto_aereo,
+        passageiro_nome_completo,centro_descritivo,tarifa_emitida, taxas, desconto_aereo,
         classe_voo, aeroporto_origem, aeroporto_destino, data_embarque
-    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
+    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
 
     $stmt->execute([
         $handleId, $dataEmissao, $bilhete, strtolower($ciaOrig), $formaPagamento, $emissor,
         $cliente, $aprovador, $requisicao, $localizador,
-        $passageiro, $tarifa, $taxas, $taxa_du,
+        $passageiro, $centroDescritivo, $tarifa,  $taxas, $taxa_du,
         $classe, $origem, $destino, $dataEmbarque
     ]);
 
@@ -132,7 +133,7 @@ while (($row = fgetcsv($handle, 0, ",")) !== false) {
     $bilheteEl->appendChild($dom->createElement("moeda", "brl"));
     $bilheteEl->appendChild($dom->createElement("emissor", $emissor));
     $bilheteEl->appendChild($dom->createElement("cliente", $cliente));
-    $bilheteEl->appendChild($dom->createElement("ccustos_cliente", ""));
+    $bilheteEl->appendChild($dom->createElement("ccustos_cliente", $centroDescritivo));
     $bilheteEl->appendChild($dom->createElement("aprovador", $aprovador));
     $bilheteEl->appendChild($dom->createElement("numero_requisicao", $requisicao));
     $bilheteEl->appendChild($dom->createElement("localizador", $localizador));
