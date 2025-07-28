@@ -4,7 +4,6 @@ header('Content-Type: application/json');
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
-// Banco de dados
 $host = 'localhost';
 $db = 'dadoswintour';
 $user = 'root';
@@ -49,83 +48,76 @@ if (!$handle) {
 }
 
 $headers = fgetcsv($handle, 0, ",");
-if (!in_array("Handle", $headers)) {
-    ob_end_clean();
-    echo json_encode(['error' => 'Cabeçalho inválido ou incompleto.']);
-    fclose($handle);
-    exit;
-}
-
 $arquivosGerados = [];
 
 while (($row = fgetcsv($handle, 0, ",")) !== false) {
     if (empty($row[0])) continue;
     $registro = array_combine($headers, $row);
 
-    $handleId       = strtolower($registro['Handle']);
-    $requisicao     = strtolower($registro['RequisiçãoBenner']);
-    $localizador    = strtolower($registro['HotelLocalizador']);
-    $hospede        = strtolower($registro['HóspedeNomeCompleto']);
-    $matricula      = strtolower($registro['HóspedeMatrícula']);
-    $hotel          = strtolower($registro['Hotel']);
-    $rede           = strtolower($registro['RedeHoteleira']);
-    $tipoApt        = strtolower($registro['TipoAcomodação']);
-    $cidade         = strtolower($registro['CidadeHotel']);
-    $estado         = strtolower($registro['EstadoHotel']);
-    $checkin        = formatarData($registro['DataCheck-In']);
-    $checkout       = formatarData($registro['DataCheck-Out']);
-    $diarias        = (int) $registro['QtdDiárias'];
-    $diariaValor    = limparValorDecimal($registro['ValordaDiária']);
-    $total          = limparValorDecimal($registro['ValorTotalDiariasHotel']);
-    $taxas          = limparValorDecimal($registro['TotalTaxas']);
-    $formaPgto      = strtolower($registro['FormaPagamento']) === 'CARTAO' ? 'cc' : 'iv';
-    $justificativa  = strtolower($registro['PoliticaJustificativaHotel'] ?? '');
-    $solicitante    = strtolower($registro['Solicitante']);
-    $aprovador      = strtolower($registro['AprovadorEfetivo']);
-    $departamento   = strtolower($registro['Departamento']);
-    $cliente        = strtolower($registro['InformaçãoCliente']);
+    $handleId     = strtolower($registro['Handle']);
+    $requisicao   = strtolower($registro['RequisiçãoBenner']);
+    $localizador  = strtolower($registro['VeículoLocalizador']);
+    $passageiro   = strtolower($registro['PassageiroVeículoNomeCompleto']);
+    $matricula    = strtolower($registro['PassageiroVeículoMátricula']);
+    $cidadeRet    = strtolower($registro['LocadoraCidadeRetirada']);
+    $cidadeDev    = strtolower($registro['LocadoraCidadeDevolução']);
+    $localRet     = strtolower($registro['Locadora']);
+    $localDev     = strtolower($registro['Locadora']);
+    $checkin      = formatarData($registro['DataRetirada']);
+    $checkout     = formatarData($registro['DataDevolução']);
+    $horaRet      = "10:00";
+    $horaDev      = "10:00";
+    $categoria    = "intermediario";
+    $formaPgto    = strtolower($registro['FormaPagamento']) === 'INVOICE' ? 'iv' : 'cc';
+    $justificativa = strtolower($registro['PoliticaJustificativaVeículo']);
+    $solicitante  = strtolower($registro['Solicitante']);
+    $aprovador    = strtolower($registro['AprovadorEfetivo']);
+    $departamento = strtolower($registro['Departamento']);
+    $cliente      = strtolower($registro['InformaçãoCliente']);
     $centroDescritivo = strtolower($registro['CentroCustoDescritivo']);
-    $emissor        = strtolower($registro['Emissor']);
-    $motivoViagem   = strtolower($registro['Finalidade']);
-    $motivoRecusa   = strtolower($registro['PoliticaMotivoHotel']);
-    $dataEmissao    = formatarData($registro['DataEmissão']);
+    $emissor      = strtolower($registro['Emissor']);
+    $motivoViagem = strtolower($registro['Finalidade']);
+    $motivoRecusa = strtolower($registro['PoliticaMotivoVeículo']);
+    $dataEmissao  = formatarData($registro['DataEmissão']);
+    $diarias      = (int) $registro['QtddeDiária'];
+    $valorDiaria  = limparValorDecimal($registro['ValordaDiaria']);
+    $valorTotal   = limparValorDecimal($registro['ValorTotalDiarias']);
+    $valorTaxas   = limparValorDecimal($registro['TotalTaxas']);
 
-    // Grava no banco
     $stmt = $pdo->prepare("INSERT INTO servicos_wintour (
-        tipo_servico, requisicao, handle, localizador, nome_passageiro, matricula, hotel,
-        rede_hoteleira, tipo_acomodacao, cidade, estado, pais, data_checkin, data_checkout,
-        qtd_diarias, valor_diaria, valor_total, valor_taxas, forma_pagamento, justificativa,
-        solicitante, aprovador, departamento
+        tipo_servico, requisicao, handle, localizador, nome_passageiro, matricula,
+        cidade, estado, pais, data_checkin, data_checkout, qtd_diarias, valor_diaria,
+        valor_total, valor_taxas, forma_pagamento, justificativa, solicitante, aprovador,
+        departamento, cliente, ccustos_cliente, emissor
     ) VALUES (
-        'hotel', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+        'carro', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
     )");
 
     $stmt->execute([
         $requisicao,
         $handleId,
         $localizador,
-        $hospede,
+        $passageiro,
         $matricula,
-        $hotel,
-        $rede,
-        $tipoApt,
-        $cidade,
-        $estado,
+        $cidadeRet,
+        '',
         'brasil',
         $checkin,
         $checkout,
         $diarias,
-        $diariaValor,
-        $total,
-        $taxas,
+        $valorDiaria,
+        $valorTotal,
+        $valorTaxas,
         $formaPgto,
         $justificativa,
         $solicitante,
         $aprovador,
-        $departamento
+        $departamento,
+        $cliente,
+        $centroDescritivo,
+        $emissor
     ]);
 
-    // Geração do XML
     $dom = new DOMDocument("1.0", "utf-8");
     $dom->formatOutput = true;
 
@@ -143,10 +135,10 @@ while (($row = fgetcsv($handle, 0, ",")) !== false) {
 
     $bilhete->appendChild($dom->createElement("idv_externo", $handleId));
     $bilhete->appendChild($dom->createElement("data_lancamento", date('d/m/Y', strtotime($dataEmissao))));
-    $bilhete->appendChild($dom->createElement("codigo_produto", "htl"));
+    $bilhete->appendChild($dom->createElement("codigo_produto", "car"));
     $bilhete->appendChild($dom->createElement("fornecedor", "512"));
     $bilhete->appendChild($dom->createElement("num_bilhete", strtoupper($localizador)));
-    $bilhete->appendChild($dom->createElement("prestador_svc", $rede));
+    $bilhete->appendChild($dom->createElement("prestador_svc", $localRet));
     $bilhete->appendChild($dom->createElement("forma_de_pagamento", $formaPgto));
     $bilhete->appendChild($dom->createElement("moeda", "brl"));
     $bilhete->appendChild($dom->createElement("emissor", $emissor));
@@ -160,12 +152,12 @@ while (($row = fgetcsv($handle, 0, ",")) !== false) {
     $bilhete->appendChild($dom->createElement("matricula", $matricula));
     $bilhete->appendChild($dom->createElement("numero_requisicao", $requisicao));
     $bilhete->appendChild($dom->createElement("localizador", $localizador));
-    $bilhete->appendChild($dom->createElement("passageiro", $hospede));
+    $bilhete->appendChild($dom->createElement("passageiro", $passageiro));
     $bilhete->appendChild($dom->createElement("tipo_domest_inter", "d"));
-    $bilhete->appendChild($dom->createElement("tipo_roteiro", "2"));
+    $bilhete->appendChild($dom->createElement("tipo_roteiro", "3"));
 
     $valores = $dom->createElement("valores");
-    foreach ([["tarifa", $diariaValor], ["taxa", $taxas], ["taxa_du", 0.00]] as [$codigo, $valor]) {
+    foreach ([["tarifa", $valorDiaria], ["taxa", $valorTaxas], ["taxa_du", 0.00]] as [$codigo, $valor]) {
         $item = $dom->createElement("item");
         $item->appendChild($dom->createElement("codigo", $codigo));
         $item->appendChild($dom->createElement("valor", number_format($valor, 2, '.', '')));
@@ -174,21 +166,20 @@ while (($row = fgetcsv($handle, 0, ",")) !== false) {
     $bilhete->appendChild($valores);
 
     $roteiro = $dom->createElement("roteiro");
-    $hospedagem = $dom->createElement("hospedagem");
-    $hotelEl = $dom->createElement("hotel");
-    $hotelEl->appendChild($dom->createElement("nr_apts", 1));
-    $hotelEl->appendChild($dom->createElement("categ_apt", "luxo"));
-    $hotelEl->appendChild($dom->createElement("tipo_apt", $tipoApt));
-    $hotelEl->appendChild($dom->createElement("dt_check_in", date('d/m/Y', strtotime($checkin))));
-    $hotelEl->appendChild($dom->createElement("dt_check_out", date('d/m/Y', strtotime($checkout))));
-    $hotelEl->appendChild($dom->createElement("nr_hospedes", 1));
-    $hotelEl->appendChild($dom->createElement("reg_alimentacao", "completo"));
-    $hotelEl->appendChild($dom->createElement("cod_tipo_pagto", $formaPgto));
-    $hotelEl->appendChild($dom->createElement("dt_confirmacao", date('d/m/Y')));
-    $hotelEl->appendChild($dom->createElement("confirmado_por", ""));
+    $locacao = $dom->createElement("locacao");
+    $locacao->appendChild($dom->createElement("cidade_retirada", $cidadeRet));
+    $locacao->appendChild($dom->createElement("local_retirada", $localRet));
+    $locacao->appendChild($dom->createElement("dt_retirada", date('d/m/Y', strtotime($checkin))));
+    $locacao->appendChild($dom->createElement("hr_retirada", $horaRet));
+    $locacao->appendChild($dom->createElement("local_devolucao", $localDev));
+    $locacao->appendChild($dom->createElement("dt_devolucao", date('d/m/Y', strtotime($checkout))));
+    $locacao->appendChild($dom->createElement("hr_devolucao", $horaDev));
+    $locacao->appendChild($dom->createElement("categ_veiculo", $categoria));
+    $locacao->appendChild($dom->createElement("cod_tipo_pagto", $formaPgto));
+    $locacao->appendChild($dom->createElement("dt_confirmacao", date('d/m/Y')));
+    $locacao->appendChild($dom->createElement("confirmado_por", ""));
 
-    $hospedagem->appendChild($hotelEl);
-    $roteiro->appendChild($hospedagem);
+    $roteiro->appendChild($locacao);
     $bilhete->appendChild($roteiro);
 
     $bilhete->appendChild($dom->createElement("info_adicionais", $justificativa));
@@ -200,6 +191,5 @@ while (($row = fgetcsv($handle, 0, ",")) !== false) {
 
 fclose($handle);
 ob_end_clean();
-
 echo json_encode(['arquivos' => array_map('basename', $arquivosGerados)]);
 exit;

@@ -20,6 +20,35 @@ $tipos = ['aereo', 'hotel', 'carro', 'onibus'];
       font-size: 16px;
     }
     .container { max-width: 900px; margin: auto; }
+
+    /* Spinner e Splash */
+ #splash {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(255, 255, 255, 0.9);
+  z-index: 9999;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+    .spinner {
+      border: 6px solid #f3f3f3;
+      border-top: 6px solid #3498db;
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      animation: spin 1s linear infinite;
+      margin-bottom: 20px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
   </style>
 </head>
 <body>
@@ -61,77 +90,96 @@ $tipos = ['aereo', 'hotel', 'carro', 'onibus'];
     <form action="baixar-xmls.php" method="post">
       <input type="submit" value="📦 Baixar Todos os XMLs (.zip)">
     </form>
-
+    <form action="listar-servicos.php" method="get" style="margin-top: 30px;">
+        <button type="submit">📊 Ver Serviços Importados</button>
+    </form>
     <p><a href="historico-envios.php">📜 Ver histórico de envios</a></p>
     <div id="status" style="margin-top: 20px;"></div>
   </div>
 
-<script>
-document.getElementById('csvForm').addEventListener('submit', function(e) {
-  e.preventDefault();
+      
 
-  const form = e.target;
-  const formData = new FormData(form);
-  const tipo = form.tipo.value;
+  <!-- Splash com Spinner -->
+  <div id="splash">
+    <div class="spinner"></div>
+    Importando CSV, por favor aguarde...
+  </div>
 
-  fetch(`process-${tipo}.php`, {
-    method: 'POST',
-    body: formData
-  })
-  .then(res => res.json())
-  .then(data => {
-    const out = document.getElementById('csvResultado');
-    if (data.error) {
-      out.innerHTML = `<p style="color: red;">Erro: ${data.error}</p>`;
-      return;
-    }
+  <script>
+  // Importação CSV com splash
+  document.getElementById('csvForm').addEventListener('submit', function(e) {
+    e.preventDefault();
 
-    // Recarrega a página para atualizar a lista de arquivos
-    window.location.reload();
-  });
-});
+    const splash = document.getElementById('splash');
+    splash.style.display = 'flex';
 
-document.getElementById('envioForm').addEventListener('submit', function(e) {
-  e.preventDefault();
-  const checkboxes = [...document.querySelectorAll('input[name="xml_files[]"]:checked')];
-  const status = document.getElementById('status');
-  if (checkboxes.length === 0) {
-    alert('Selecione pelo menos um XML.');
-    return;
-  }
+    const form = e.target;
+    const formData = new FormData(form);
+    const tipo = form.tipo.value;
 
-  status.innerHTML = `<p>Enviando ${checkboxes.length} arquivos...</p><ul id="log"></ul>`;
-  const log = document.getElementById('log');
-
-  const enviarArquivo = (index) => {
-    if (index >= checkboxes.length) {
-      log.innerHTML += `<li><strong>✅ Todos os arquivos foram enviados.</strong></li>`;
-      fetch('xml-lista.php')
-        .then(r => r.text())
-        .then(html => document.getElementById('xmlList').innerHTML = html);
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append('xml_files', checkboxes[index].value);
-
-    fetch('envia-xml.php', {
+    fetch(`process-${tipo}.php`, {
       method: 'POST',
       body: formData
     })
-    .then(r => r.text())
-    .then(res => {
-      log.innerHTML += `<li><strong>${checkboxes[index].value}</strong>: ${res}</li>`;
-      enviarArquivo(index + 1);
-    })
-    .catch(() => {
-      log.innerHTML += `<li><strong>${checkboxes[index].value}</strong>: ❌ Erro</li>`;
-      enviarArquivo(index + 1);
-    });
-  };
+    .then(res => res.json())
+    .then(data => {
+      if (data.error) {
+        splash.style.display = 'none';
+        document.getElementById('csvResultado').innerHTML = `<p style="color: red;">Erro: ${data.error}</p>`;
+        return;
+      }
 
-  enviarArquivo(0);
-});
-</script>
+      // reload após 1s
+      setTimeout(() => window.location.reload(), 1000);
+    })
+    .catch(err => {
+      splash.style.display = 'none';
+      alert("Erro durante importação: " + err.message);
+    });
+  });
+
+  // Envio de XMLs selecionados
+  document.getElementById('envioForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const checkboxes = [...document.querySelectorAll('input[name="xml_files[]"]:checked')];
+    const status = document.getElementById('status');
+    if (checkboxes.length === 0) {
+      alert('Selecione pelo menos um XML.');
+      return;
+    }
+
+    status.innerHTML = `<p>Enviando ${checkboxes.length} arquivos...</p><ul id="log"></ul>`;
+    const log = document.getElementById('log');
+
+    const enviarArquivo = (index) => {
+      if (index >= checkboxes.length) {
+        log.innerHTML += `<li><strong>✅ Todos os arquivos foram enviados.</strong></li>`;
+        fetch('xml-lista.php')
+          .then(r => r.text())
+          .then(html => document.getElementById('xmlList').innerHTML = html);
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('xml_files', checkboxes[index].value);
+
+      fetch('envia-xml.php', {
+        method: 'POST',
+        body: formData
+      })
+      .then(r => r.text())
+      .then(res => {
+        log.innerHTML += `<li><strong>${checkboxes[index].value}</strong>: ${res}</li>`;
+        enviarArquivo(index + 1);
+      })
+      .catch(() => {
+        log.innerHTML += `<li><strong>${checkboxes[index].value}</strong>: ❌ Erro</li>`;
+        enviarArquivo(index + 1);
+      });
+    };
+
+    enviarArquivo(0);
+  });
+  </script>
 </body>
 </html>

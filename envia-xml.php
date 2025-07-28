@@ -49,7 +49,7 @@ XML;
     savelog($logFile, "SOAP: $envelope");
     savelog($logFile, "RESPOSTA: " . ($response ?: $error));
 
-    // Atualiza status
+    // ✅ Atualiza status no formato compatível com strtotime()
     $statusFile = __DIR__ . '/logs/envios_status.json';
     $status = file_exists($statusFile) ? json_decode(file_get_contents($statusFile), true) : [];
     $status[$fileName] = date('Y-m-d H:i:s');
