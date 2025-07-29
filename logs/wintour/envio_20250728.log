@@ -1,4 +1,4 @@
-[2025-07-28 22:48:14] ARQUIVO: wintour-121711001.xml
+[2025-07-28 22:48:14] ARQUIVO: wintour-121711111.xml
 [2025-07-28 22:48:14] SOAP: <soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
                   xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
@@ -14,4 +14,3 @@
 </soapenv:Envelope>
 [2025-07-28 22:48:14] RESPOSTA: <?xml version="1.0"?>
 <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/"><SOAP-ENV:Body SOAP-ENV:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" xmlns:NS1="urn:HubInterfacesIntf-IHubInterfaces"><NS1:importaArquivo2Response><return xsi:type="xsd:string">F6113B37-7CF7I4272-A6AB-3B0C70DCFAF9</return></NS1:importaArquivo2Response></SOAP-ENV:Body></SOAP-ENV:Envelope>
-

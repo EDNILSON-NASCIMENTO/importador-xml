@@ -52,7 +52,16 @@ XML;
     // ✅ Atualiza status no formato compatível com strtotime()
     $statusFile = __DIR__ . '/logs/envios_status.json';
     $status = file_exists($statusFile) ? json_decode(file_get_contents($statusFile), true) : [];
-    $status[$fileName] = date('Y-m-d H:i:s');
+    $tipo = 'desconhecido';
+    if (str_contains($fileName, 'aereo')) $tipo = 'aereo';
+    elseif (str_contains($fileName, 'hotel')) $tipo = 'hotel';
+    elseif (str_contains($fileName, 'carro')) $tipo = 'carro';
+    elseif (str_contains($fileName, 'onibus')) $tipo = 'onibus';
+
+    $status[$fileName] = [
+        'tipo' => strtoupper($tipo),
+        'data' => date('Y-m-d H:i:s')
+    ];
     file_put_contents($statusFile, json_encode($status, JSON_PRETTY_PRINT));
 
     echo $response ? "✅ Enviado com sucesso" : "❌ Erro no envio: $error";

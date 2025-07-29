@@ -10,13 +10,14 @@ if (!is_array($statusList)) $statusList = [];
 $xmlFiles = glob(XML_DIR . '/*.xml');
 
 function buscarStatusArquivo($arquivo, $lista) {
-    foreach ($lista as $entry) {
-        if (isset($entry['arquivo']) && $entry['arquivo'] === $arquivo) {
+    foreach ($lista as $key => $entry) {
+        if ($key === $arquivo && is_array($entry) && isset($entry['data'])) {
             return $entry;
         }
     }
     return null;
 }
+
 
 if (empty($xmlFiles)) {
     echo "<tr><td colspan='3'>Nenhum XML encontrado.</td></tr>";
@@ -25,7 +26,7 @@ if (empty($xmlFiles)) {
         $name = basename($file);
         $status = buscarStatusArquivo($name, $statusList);
 
-        $enviado = $status !== null;
+        $enviado = is_array($status) && isset($status['data']) && isset($status['tipo']) && file_exists(LOG_DIR . '/envio_' . date('Ymd', strtotime($status['data'])) . '.log');
         $dataEnvio = $enviado ? date('d/m/Y H:i', strtotime($status['data'])) : '';
         $link = "xml/" . urlencode($name);
 

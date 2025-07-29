@@ -41,7 +41,7 @@ $tipos = ['aereo', 'hotel', 'carro', 'onibus'];
             <th>#</th>
             <th>Requisição</th>
             <th>Nome</th>
-            <th>Localizador</th>
+            <th>Localizador</th>            
             <th>Embarque / Check-in</th>
             <th>Origem / Cidade</th>
             <th>Destino / Estado</th>
@@ -65,7 +65,7 @@ $tipos = ['aereo', 'hotel', 'carro', 'onibus'];
               <td><?= $r['origem'] ?? $r['cidade'] ?? '-' ?></td>
               <td><?= $r['destino'] ?? $r['estado'] ?? '-' ?></td>
               <td>R$ <?= number_format($r['valor_total'] ?? $r['tarifa'] + $r['taxas'], 2, ',', '.') ?></td>
-              <td><?= ucfirst(strtolower($r['forma_pagamento'])) ?></td>
+              <td><?= strtolower($r['forma_pagamento']) ?></td>
               <td><?= date('d/m/Y H:i', strtotime($r['data_criacao'])) ?></td>
             </tr>
           <?php endforeach; ?>

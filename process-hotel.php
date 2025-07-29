@@ -196,10 +196,22 @@ while (($row = fgetcsv($handle, 0, ",")) !== false) {
     $filename = 'xml/wintour-' . $requisicao . '.xml';
     $dom->save($filename);
     $arquivosGerados[] = $filename;
+
+    // Atualiza envios_status.json
+    $statusFile = __DIR__ . '/logs/envios_status.json';
+    $status = file_exists($statusFile) ? json_decode(file_get_contents($statusFile), true) : [];    
 }
 
 fclose($handle);
-ob_end_clean();
+//ob_end_clean();
 
-echo json_encode(['arquivos' => array_map('basename', $arquivosGerados)]);
+//echo json_encode(['arquivos' => array_map('basename', $arquivosGerados)]);
+echo empty($arquivosGerados)
+    ? json_encode(['error' => 'Nenhum arquivo foi gerado.'])
+    : json_encode(['arquivos' => $arquivosGerados]);
+
+ob_end_clean();
+echo json_encode(['arquivos' => $arquivosGerados]);
+
+
 exit;

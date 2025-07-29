@@ -172,9 +172,7 @@ while (($row = fgetcsv($handle, 0, ",")) !== false) {
 
     // Atualiza envios_status.json
     $statusFile = __DIR__ . '/logs/envios_status.json';
-    $status = file_exists($statusFile) ? json_decode(file_get_contents($statusFile), true) : [];
-    $status[$arquivosGerados[count($arquivosGerados) - 1]] = date('Y-m-d H:i:s');
-    file_put_contents($statusFile, json_encode($status, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+    $status = file_exists($statusFile) ? json_decode(file_get_contents($statusFile), true) : [];    
 }
 
 fclose($handle);
