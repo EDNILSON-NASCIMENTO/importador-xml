@@ -62,7 +62,7 @@ while (($row = fgetcsv($handle, 0, ",")) !== false) {
     $forma_pgto = strtoupper($registro['FormaPagamento']);
     $emissor = strtolower($registro['Emissor']);
     $cliente = strtolower($registro['InformaçãoCliente']);
-    $centro = strtolower($registro['CentroDescritivo']);
+    $centro = strtolower($registro['BI']);
     $solicitante = strtolower($registro['Solicitante']);
     $aprovador = strtolower($registro['AprovadorEfetivo']);
     $departamento = strtolower($registro['Departamento']);

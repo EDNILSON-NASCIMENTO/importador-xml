@@ -72,7 +72,7 @@ while (($row = fgetcsv($handle, 0, ",")) !== false) {
     $aprovador = strtolower($registro['AprovadorEfetivo']);
     $departamento = strtolower($registro['Departamento']);
     $cliente = strtolower($registro['InformaçãoCliente']);
-    $centroDescritivo = strtolower($registro['CentroCustoDescritivo']);
+    $centroDescritivo = strtolower($registro['BI']);
     $emissor = strtolower($registro['Emissor']);
     $motivoViagem = strtolower($registro['Finalidade']);
     $motivoRecusa = strtolower($registro['PoliticaMotivoVeículo']);
@@ -87,16 +87,16 @@ while (($row = fgetcsv($handle, 0, ",")) !== false) {
         tipo_servico, requisicao, handle, localizador, nome_passageiro, matricula,
         cidade, estado, pais, data_checkin, data_checkout, qtd_diarias, valor_diaria,
         valor_total, valor_taxas, forma_pagamento, justificativa, solicitante, aprovador,
-        departamento, cliente, ccustos_cliente, emissor
+        departamento, cliente, ccustos_cliente, emissor,origem, destino
     ) VALUES (
-        'carro', ?, ?, ?, ?, ?, ?, '', 'brasil', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+        'carro', ?, ?, ?, ?, ?, ?, '', 'brasil', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
     )");
 
     $stmt->execute([
         $requisicao, $handleId, $localizador, $passageiro, $matricula, $cidadeRet,
         $checkin, $checkout, $diarias, $valorDiaria, $valorTotal, $valorTaxas,
         $formaPgto, $justificativa, $solicitante, $aprovador, $departamento,
-        $cliente, $centroDescritivo, $emissor
+        $cliente, $centroDescritivo, $emissor, $origem = $localRet, $destino = $localDev
     ]);
 
     // XML

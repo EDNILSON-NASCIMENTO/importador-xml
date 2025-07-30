@@ -43,8 +43,8 @@ $tipos = ['aereo', 'hotel', 'carro', 'onibus'];
             <th>Nome</th>
             <th>Localizador</th>            
             <th>Embarque / Check-in</th>
-            <th>Origem / Cidade</th>
-            <th>Destino / Estado</th>
+            <th>Origem / Cidade / Retirada</th>
+            <th>Destino / Estado / Devolução</th>
             <th>Valor Total</th>
             <th>Forma Pgto</th>
             <th>Data</th>
@@ -63,7 +63,7 @@ $tipos = ['aereo', 'hotel', 'carro', 'onibus'];
                   : date('d/m/Y', strtotime($r['data_embarque'] ?? '')) ?>
               </td>
               <td><?= $r['origem'] ?? $r['cidade'] ?? '-' ?></td>
-              <td><?= $r['destino'] ?? $r['estado'] ?? '-' ?></td>
+              <td><?= $r['destino'] ?? $r['estado'] ?? '-'  ?></td>
               <td>R$ <?= number_format($r['valor_total'] ?? $r['tarifa'] + $r['taxas'], 2, ',', '.') ?></td>
               <td><?= strtolower($r['forma_pagamento']) ?></td>
               <td><?= date('d/m/Y H:i', strtotime($r['data_criacao'])) ?></td>

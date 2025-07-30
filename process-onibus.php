@@ -1,34 +1,39 @@
 <?php
-while (ob_get_level()) ob_end_clean();
-ob_start();
+define('XML_DIR', __DIR__ . '/xml');
 
 header('Content-Type: application/json');
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
+ob_start();
 
+// Conexão com banco
 $host = 'localhost';
-$db   = 'dadoswintour';
+$db = 'dadoswintour';
 $user = 'root';
 $pass = '1234';
 
 try {
     $pdo = new PDO("mysql:host=$host;dbname=$db;charset=utf8", $user, $pass);
 } catch (PDOException $e) {
+    ob_end_clean();
     echo json_encode(['error' => "Erro DB: " . $e->getMessage()]);
     exit;
 }
 
 function formatarData($data) {
+    if (!$data || $data === '') return null;
     $parts = explode("/", $data);
-    return count($parts) === 3 ? "$parts[2]-" . str_pad($parts[1], 2, "0", STR_PAD_LEFT) . "-" . str_pad($parts[0], 2, "0", STR_PAD_LEFT) : '';
+    return count($parts) === 3 ? "$parts[2]-" . str_pad($parts[1], 2, "0", STR_PAD_LEFT) . "-" . str_pad($parts[0], 2, "0", STR_PAD_LEFT) : null;
 }
 
 function limparValorDecimal($valor) {
+    if (!$valor || $valor === '') return 0;
     $limpo = str_replace(['R$', ' ', '.', "'"], '', $valor);
     return (trim($limpo) === '' || $limpo === '-') ? 0 : floatval(str_replace(',', '.', $limpo));
 }
 
 if (!isset($_FILES['csvfile']) || $_FILES['csvfile']['error'] !== UPLOAD_ERR_OK) {
+    ob_end_clean();
     echo json_encode(['error' => 'Erro ao enviar arquivo.']);
     exit;
 }
@@ -36,6 +41,7 @@ if (!isset($_FILES['csvfile']) || $_FILES['csvfile']['error'] !== UPLOAD_ERR_OK)
 $csvFile = $_FILES['csvfile']['tmp_name'];
 $handle = fopen($csvFile, 'r');
 if (!$handle) {
+    ob_end_clean();
     echo json_encode(['error' => 'Erro ao abrir arquivo.']);
     exit;
 }
@@ -47,44 +53,53 @@ while (($row = fgetcsv($handle, 0, ",")) !== false) {
     if (empty($row[0])) continue;
     $registro = array_combine($headers, $row);
 
-    $requisicao = strtolower($registro['RequisiçãoBenner']);
-    $handleId = strtolower($registro['Handle']);
-    $localizador = strtolower($registro['MiscelaneosLocalizador']);
-    $passageiro = strtolower($registro['PassageiroNomeCompleto']);
-    $matricula = strtolower($registro['PassageiroMatrícula']);
-    $dataEmissao = formatarData($registro['DataEmissão']);
-    $dataIda = formatarData($registro['DataIda']);
-    $forma_pgto = strtoupper($registro['FormaPagamento']);
-    $emissor = strtolower($registro['Emissor']);
-    $cliente = strtolower($registro['InformaçãoCliente']);
-    $centro = strtolower($registro['CentroDescritivo']);
-    $solicitante = strtolower($registro['Solicitante']);
-    $aprovador = strtolower($registro['AprovadorEfetivo']);
-    $departamento = strtolower($registro['Departamento']);
-    $motivo = strtolower($registro['Finalidade']);
-    $just = strtolower($registro['PoliticaJustificativaÔnibus']);
-    $valor_total = limparValorDecimal($registro['ValorTotal']);
-    $valor_taxas = limparValorDecimal($registro['ValorTaxas']);
-    $desconto = 0;
+    // Mapeamento dos campos do CSV para a tabela
+    $requisicao = strtolower($registro['RequisiçãoBenner'] ?? '');
+    $handleId = strtolower($registro['Handle'] ?? '');
+    $localizador = strtolower($registro['MiscelaneosLocalizador'] ?? '');
+    $passageiro = strtolower($registro['PassageiroOutrosServiçosNome'] ?? '');
+    $matricula = strtolower($registro['PassageiroOutrosServiçosMatricula'] ?? '');
+    $checkin = formatarData($registro['DataIda'] ?? '');
+    $checkout = formatarData($registro['DataVolta'] ?? '');
+    $dataEmissao = formatarData($registro['DataEmissão'] ?? '');
+    $dataEmbarque = $checkin;
+    $formaPgto = strtolower($registro['FormaPagamento'] ?? '') === 'INVOICE' ? 'iv' : 'cc';
+    $justificativa = strtolower($registro['PoliticaJustificativaÔnibus'] ?? '');
+    $solicitante = strtolower($registro['Solicitante'] ?? '');
+    $aprovador = strtolower($registro['AprovadorEfetivo'] ?? '');
+    $departamento = strtolower($registro['Departamento'] ?? '');
+    $cliente = strtolower($registro['InformaçãoCliente'] ?? '');
+    $centroDescritivo = strtolower($registro['BI'] ?? '');
+    $emissor = strtolower($registro['Emissor'] ?? '');
+    $motivoViagem = strtolower($registro['Finalidade'] ?? '');
+    $motivoRecusa = strtolower($registro['MotivoRecusa'] ?? '');
+    $valorDiaria = limparValorDecimal($registro['MiscelaneosTarifaEmitida'] ?? '');
+    $valorTotal = limparValorDecimal($registro['MiscelaneosValorTotal'] ?? '');
+    $valorTaxas = limparValorDecimal($registro['TotalTaxas'] ?? '');
+    $origem = strtolower($registro['CidadeOutrosProdutos'] ?? '');
+    $destino = strtolower($registro['Destino'] ?? '');
 
+    // Banco
     $stmt = $pdo->prepare("INSERT INTO servicos_wintour (
         tipo_servico, requisicao, handle, localizador, nome_passageiro, matricula,
-        data_emissao, data_embarque, forma_pagamento, emissor, cliente,
-        ccustos_cliente, solicitante, aprovador, departamento, motivo_viagem,
-        justificativa, valor_total, valor_taxas, desconto
+        cidade, estado, pais, data_checkin, data_checkout, qtd_diarias, valor_diaria,
+        valor_total, valor_taxas, forma_pagamento, justificativa, solicitante, aprovador,
+        departamento, cliente, ccustos_cliente, emissor, origem, destino, data_emissao,
+        data_embarque, tarifa, taxas, desconto, motivo_viagem, passageiro
     ) VALUES (
-        'onibus', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+        'onibus', ?, ?, ?, ?, ?, ?, '', 'brasil', ?, ?, 0, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?
     )");
 
     $stmt->execute([
-        $requisicao, $handleId, $localizador, $passageiro, $matricula,
-        $dataEmissao, $dataIda, $forma_pgto, $emissor, $cliente, $centro,
-        $solicitante, $aprovador, $departamento, $motivo, $just,
-        $valor_total, $valor_taxas, $desconto
+        $requisicao, $handleId, $localizador, $passageiro, $matricula, $origem,
+        $checkin, $checkout, $valorDiaria, $valorTotal, $valorTaxas,
+        $formaPgto, $justificativa, $solicitante, $aprovador, $departamento,
+        $cliente, $centroDescritivo, $emissor, $origem, $destino, $dataEmissao,
+        $dataEmbarque, $valorDiaria, $valorTaxas, $motivoViagem, $passageiro
     ]);
 
-    // Geração do XML
-    $dom = new DOMDocument("1.0", "iso-8859-1");
+    // XML
+    $dom = new DOMDocument("1.0", "utf-8");
     $dom->formatOutput = true;
     $root = $dom->createElement("bilhetes");
     $dom->appendChild($root);
@@ -94,61 +109,50 @@ while (($row = fgetcsv($handle, 0, ",")) !== false) {
     $root->appendChild($dom->createElement("nome_agencia", "uniglobe pro"));
     $root->appendChild($dom->createElement("versao_xml", "4"));
 
-    $bilheteEl = $dom->createElement("bilhete");
-    $root->appendChild($bilheteEl);
-
-    $bilheteEl->appendChild($dom->createElement("idv_externo", $handleId));
-    $bilheteEl->appendChild($dom->createElement("data_lancamento", date('d/m/Y', strtotime($dataEmissao))));
-    $bilheteEl->appendChild($dom->createElement("codigo_produto", "bus"));
-    $bilheteEl->appendChild($dom->createElement("fornecedor", "512"));
-    $bilheteEl->appendChild($dom->createElement("num_bilhete", $localizador));
-    $bilheteEl->appendChild($dom->createElement("prestador_svc", "onibus"));
-    $bilheteEl->appendChild($dom->createElement("forma_de_pagamento", strtolower($forma_pgto)));
-    $bilheteEl->appendChild($dom->createElement("moeda", "brl"));
-    $bilheteEl->appendChild($dom->createElement("emissor", $emissor));
-    $bilheteEl->appendChild($dom->createElement("cliente", $cliente));
-    $bilheteEl->appendChild($dom->createElement("ccustos_cliente", $centro));
-    $bilheteEl->appendChild($dom->createElement("solicitante", $solicitante));
-    $bilheteEl->appendChild($dom->createElement("aprovador", $aprovador));
-    $bilheteEl->appendChild($dom->createElement("departamento", $departamento));
-    $bilheteEl->appendChild($dom->createElement("motivo_viagem", $motivo));
-    $bilheteEl->appendChild($dom->createElement("motivo_recusa", ""));
-    $bilheteEl->appendChild($dom->createElement("matricula", $matricula));
-    $bilheteEl->appendChild($dom->createElement("numero_requisicao", $requisicao));
-    $bilheteEl->appendChild($dom->createElement("localizador", $localizador));
-    $bilheteEl->appendChild($dom->createElement("passageiro", $passageiro));
-    $bilheteEl->appendChild($dom->createElement("tipo_domest_inter", "d"));
-    $bilheteEl->appendChild($dom->createElement("tipo_roteiro", "1"));
+    $bilhete = $dom->createElement("bilhete");
+    $root->appendChild($bilhete);
+    $bilhete->appendChild($dom->createElement("idv_externo", $handleId));
+    $bilhete->appendChild($dom->createElement("data_lancamento", date('d/m/Y', strtotime($dataEmissao))));
+    $bilhete->appendChild($dom->createElement("codigo_produto", "out"));
+    $bilhete->appendChild($dom->createElement("fornecedor", "512"));
+    $bilhete->appendChild($dom->createElement("num_bilhete", strtoupper($localizador)));
+    $bilhete->appendChild($dom->createElement("prestador_svc", $origem));
+    $bilhete->appendChild($dom->createElement("forma_de_pagamento", $formaPgto));
+    $bilhete->appendChild($dom->createElement("moeda", "brl"));
+    $bilhete->appendChild($dom->createElement("emissor", $emissor));
+    $bilhete->appendChild($dom->createElement("cliente", $cliente));
+    $bilhete->appendChild($dom->createElement("ccustos_cliente", $centroDescritivo));
+    $bilhete->appendChild($dom->createElement("solicitante", $solicitante));
+    $bilhete->appendChild($dom->createElement("aprovador", $aprovador));
+    $bilhete->appendChild($dom->createElement("departamento", $departamento));
+    $bilhete->appendChild($dom->createElement("motivo_viagem", $motivoViagem));
+    $bilhete->appendChild($dom->createElement("motivo_recusa", $motivoRecusa));
+    $bilhete->appendChild($dom->createElement("matricula", $matricula));
+    $bilhete->appendChild($dom->createElement("numero_requisicao", $requisicao));
+    $bilhete->appendChild($dom->createElement("localizador", $localizador));
+    $bilhete->appendChild($dom->createElement("passageiro", $passageiro));
+    $bilhete->appendChild($dom->createElement("tipo_domest_inter", "d"));
+    $bilhete->appendChild($dom->createElement("tipo_roteiro", "3"));
 
     $valores = $dom->createElement("valores");
-    foreach ([["tarifa", $valor_total], ["taxa", $valor_taxas]] as [$codigo, $valor]) {
+    foreach ([["tarifa", $valorDiaria], ["taxa", $valorTaxas], ["taxa_du", 0.00]] as [$codigo, $valor]) {
         $item = $dom->createElement("item");
         $item->appendChild($dom->createElement("codigo", $codigo));
         $item->appendChild($dom->createElement("valor", number_format($valor, 2, '.', '')));
         $valores->appendChild($item);
     }
-    $bilheteEl->appendChild($valores);
+    $bilhete->appendChild($valores);
 
-    $bilheteEl->appendChild($dom->createElement("info_adicionais", $just));
+    $bilhete->appendChild($dom->createElement("info_adicionais", $justificativa));
 
-    $filename = __DIR__ . '/xml/wintour-' . $requisicao . '.xml';
+    $filename = 'xml/wintour-' . $requisicao . '.xml';
     $dom->save($filename);
-    $arquivosGerados[] = basename($filename);
-
-    // Atualiza envios_status.json
-    $statusFile = __DIR__ . '/logs/envios_status.json';
-    $status = file_exists($statusFile) ? json_decode(file_get_contents($statusFile), true) : [];
-    $status[$arquivosGerados[count($arquivosGerados) - 1]] = date('Y-m-d H:i:s');
-    file_put_contents($statusFile, json_encode($status, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+    $arquivosGerados[] = $filename;
 }
 
 fclose($handle);
-
+ob_end_clean();
 echo empty($arquivosGerados)
     ? json_encode(['error' => 'Nenhum arquivo foi gerado.'])
     : json_encode(['arquivos' => $arquivosGerados]);
-
-ob_end_clean();
-echo json_encode(['arquivos' => $arquivosGerados]);
-
 exit;

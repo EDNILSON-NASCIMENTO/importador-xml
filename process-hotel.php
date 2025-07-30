@@ -84,7 +84,7 @@ while (($row = fgetcsv($handle, 0, ",")) !== false) {
     $aprovador      = strtolower($registro['AprovadorEfetivo']);
     $departamento   = strtolower($registro['Departamento']);
     $cliente        = strtolower($registro['InformaçãoCliente']);
-    $centroDescritivo = strtolower($registro['CentroCustoDescritivo']);
+    $centroDescritivo = strtolower($registro['BI']);
     $emissor        = strtolower($registro['Emissor']);
     $motivoViagem   = strtolower($registro['Finalidade']);
     $motivoRecusa   = strtolower($registro['PoliticaMotivoHotel']);
