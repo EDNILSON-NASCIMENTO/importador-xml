@@ -64,7 +64,7 @@ while (($row = fgetcsv($handle, 0, ",")) !== false) {
     $dataEmissao = formatarData($registro['DataEmissão'] ?? '');
     $dataEmbarque = $checkin;
     $formaPgto = strtolower($registro['FormaPagamento'] ?? '') === 'INVOICE' ? 'iv' : 'cc';
-    $justificativa = strtolower($registro['PoliticaJustificativaÔnibus'] ?? '');
+    $justificativa = strtolower($registro['PoliticaJustificativaVeículo'] ?? '');
     $solicitante = strtolower($registro['Solicitante'] ?? '');
     $aprovador = strtolower($registro['AprovadorEfetivo'] ?? '');
     $departamento = strtolower($registro['Departamento'] ?? '');
@@ -72,7 +72,7 @@ while (($row = fgetcsv($handle, 0, ",")) !== false) {
     $centroDescritivo = strtolower($registro['BI'] ?? '');
     $emissor = strtolower($registro['Emissor'] ?? '');
     $motivoViagem = strtolower($registro['Finalidade'] ?? '');
-    $motivoRecusa = strtolower($registro['MotivoRecusa'] ?? '');
+    $motivoRecusa = strtolower($registro['PoliticaMotivoVeículo'] ?? '');
     $valorDiaria = limparValorDecimal($registro['MiscelaneosTarifaEmitida'] ?? '');
     $valorTotal = limparValorDecimal($registro['MiscelaneosValorTotal'] ?? '');
     $valorTaxas = limparValorDecimal($registro['TotalTaxas'] ?? '');
